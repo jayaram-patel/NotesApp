@@ -1,0 +1,59 @@
+CREATE TABLE Folder (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE Note (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    folderId INTEGER NOT NULL,
+    text TEXT NOT NULL,
+
+    FOREIGN KEY(folderId)
+        REFERENCES Folder(id)
+        ON DELETE CASCADE
+);
+
+--------------------------
+-- Folder Queries
+--------------------------
+getFolders:
+SELECT * FROM Folder;
+
+insertFolder:
+INSERT INTO Folder(name)
+VALUES (?);
+
+deleteFolder:
+DELETE FROM Folder
+WHERE id=?;
+
+updateFolder:
+UPDATE Folder
+SET name=?
+WHERE id=?;
+
+--------------------------
+-- Note Queries
+--------------------------
+
+getAllNotes:
+SELECT *
+FROM Note;
+
+getNotes:
+SELECT *
+FROM Note
+WHERE folderId=?;
+
+insertNote:
+INSERT INTO Note(folderId, text)
+VALUES (?, ?);
+
+deleteNote:
+DELETE FROM Note
+WHERE id=?;
+
+updateNote:
+UPDATE Note
+SET text=?
+WHERE id=?;
