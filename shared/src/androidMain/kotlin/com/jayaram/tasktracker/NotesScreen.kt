@@ -1,5 +1,6 @@
 package com.jayaram.tasktracker
-
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.runtime.Composable
 import com.jayaram.tasktracker.model.Folder
 
@@ -30,6 +31,8 @@ fun NotesScreen(
 
     var noteText by remember { mutableStateOf("") }
     var editingNote by remember { mutableStateOf<Note?>(null) }
+
+    val haptic = LocalHapticFeedback.current
 
     val context = LocalContext.current
 
@@ -107,6 +110,10 @@ fun NotesScreen(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
 
+                        haptic.performHapticFeedback(
+                            HapticFeedbackType.LongPress
+                        )
+
                         if (noteText.isNotBlank()) {
 
                             if (editingNote == null) {
@@ -172,6 +179,9 @@ fun NotesScreen(
 
                                 IconButton(
                                     onClick = {
+                                        haptic.performHapticFeedback(
+                                            HapticFeedbackType.LongPress
+                                        )
                                         noteText = note.text
                                         editingNote = note
                                     }
@@ -184,6 +194,10 @@ fun NotesScreen(
 
                                 IconButton(
                                     onClick = {
+
+                                        haptic.performHapticFeedback(
+                                            HapticFeedbackType.LongPress
+                                        )
 
                                         deletedNote = note
                                         deletedIndex = notes.indexOf(note)

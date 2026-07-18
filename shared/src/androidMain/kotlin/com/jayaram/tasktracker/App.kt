@@ -19,8 +19,18 @@ import com.jayaram.tasktracker.database.DatabaseDriverFactory
 import com.jayaram.tasktracker.model.Folder
 import com.jayaram.tasktracker.repository.FolderRepository
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import tasktracker.shared.generated.resources.Res
+import org.jetbrains.compose.resources.painterResource
+import tasktracker.shared.generated.resources.app_logo
+
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 @Composable
 fun App() {
+
+    val haptic = LocalHapticFeedback.current
 
     val context = LocalContext.current
 
@@ -73,10 +83,23 @@ fun App() {
                     .padding(innerPadding)
                     .padding(16.dp)
             ) {
-                Text(
-                    text = "📝 My Notes",
-                    style = MaterialTheme.typography.headlineLarge
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(42.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Text(
+                        text = "My Notes",
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -98,6 +121,10 @@ fun App() {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
+
+                        haptic.performHapticFeedback(
+                            HapticFeedbackType.LongPress
+                        )
 
                         if (folderName.isNotBlank()) {
 
@@ -151,6 +178,9 @@ fun App() {
                                 .fillMaxWidth()
                                 .padding(vertical = 6.dp)
                                 .clickable {
+                                    haptic.performHapticFeedback(
+                                        HapticFeedbackType.TextHandleMove
+                                    )
                                     selectedFolder = folder
                                 }
                         ) {
