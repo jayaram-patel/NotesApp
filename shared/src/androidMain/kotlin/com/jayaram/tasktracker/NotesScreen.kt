@@ -114,34 +114,45 @@ fun NotesScreen(
                             HapticFeedbackType.LongPress
                         )
 
-                        if (noteText.isNotBlank()) {
+                        if (noteText.isBlank()) {
 
-                            if (editingNote == null) {
+                            scope.launch {
 
-                                repository.addNote(
-                                    folder.id,
-                                    noteText
+                                snackbarHostState.currentSnackbarData?.dismiss()
+
+                                snackbarHostState.showSnackbar(
+                                    message = "Note cannot be empty",
+                                    duration = SnackbarDuration.Short
                                 )
-
-
-                            } else {
-
-                                repository.updateNote(
-                                    editingNote!!.copy(
-                                        text = noteText
-                                    )
-                                )
-
-                                editingNote = null
                             }
 
-                            notes.clear()
-                            notes.addAll(
-                                repository.getNotes(folder.id)
+                            return@Button
+                        }
+
+                        if (editingNote == null) {
+
+                            repository.addNote(
+                                folder.id,
+                                noteText
                             )
 
-                            noteText = ""
+                        } else {
+
+                            repository.updateNote(
+                                editingNote!!.copy(
+                                    text = noteText
+                                )
+                            )
+
+                            editingNote = null
                         }
+
+                        notes.clear()
+                        notes.addAll(
+                            repository.getNotes(folder.id)
+                        )
+
+                        noteText = ""
                     }
                 ) {
                     Text(
@@ -221,7 +232,7 @@ fun NotesScreen(
                                             if (result == SnackbarResult.ActionPerformed) {
                                                 repository.addNote(
                                                     folder.id,
-                                                    noteText
+                                                    deletedNote!!.text
                                                 )
 
                                                 notes.clear()

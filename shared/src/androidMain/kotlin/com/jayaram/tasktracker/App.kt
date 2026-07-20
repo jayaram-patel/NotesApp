@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.launch
 
 import com.jayaram.tasktracker.database.DatabaseDriverFactory
 import com.jayaram.tasktracker.model.Folder
@@ -29,7 +30,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 @Composable
 fun App() {
-
     val haptic = LocalHapticFeedback.current
 
     val context = LocalContext.current
@@ -56,6 +56,12 @@ fun App() {
         mutableStateListOf<Folder>()
     }
 
+    var deletedFolder by remember { mutableStateOf<Folder?>(null) }
+    var deletedFolderIndex by remember { mutableIntStateOf(-1) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         folders.clear()
         folders.addAll(repository.getFolders())
@@ -74,8 +80,20 @@ fun App() {
             return@MaterialTheme
         }
 
-        Scaffold { innerPadding ->
-
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(
+                    hostState = snackbarHostState
+                ) { snackbarData ->
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionColor = Color.Red
+                    )
+                }
+            }
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -121,48 +139,47 @@ fun App() {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-
                         haptic.performHapticFeedback(
                             HapticFeedbackType.LongPress
                         )
 
-                        if (folderName.isNotBlank()) {
+                        if (folderName.isBlank()) {
+                            scope.launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
 
-                            if (editingFolder == null) {
-
-                                repository.addFolder(folderName)
-
-                            } else {
-
-                                repository.updateFolder(
-                                    editingFolder!!.copy(
-                                        name = folderName
-                                    )
+                                snackbarHostState.showSnackbar(
+                                    message = "Enter folder name first",
+                                    duration = SnackbarDuration.Short
                                 )
-
-                                editingFolder = null
                             }
-
-                            folders.clear()
-                            folders.addAll(repository.getFolders())
-
-                            folderName = ""
+                            return@Button
                         }
 
+                        if (editingFolder == null) {
+                            repository.addFolder(folderName)
+                        } else {
+                            repository.updateFolder(
+                                editingFolder!!.copy(
+                                    name = folderName
+                                )
+                            )
+                            editingFolder = null
+                        }
+
+                        folders.clear()
+                        folders.addAll(repository.getFolders())
+                        folderName = ""
                     }
                 ) {
-
                     Text(
                         if (editingFolder == null)
                             "Create Folder"
                         else
                             "Save Changes"
                     )
-
                 }
 
                 Spacer(modifier = Modifier.height(30.dp))
-
                 Text(
                     text = "All Folders",
                     style = MaterialTheme.typography.titleMedium,
@@ -170,9 +187,7 @@ fun App() {
                 )
 
                 LazyColumn {
-
                     items(folders) { folder ->
-
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -184,7 +199,6 @@ fun App() {
                                     selectedFolder = folder
                                 }
                         ) {
-
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -192,7 +206,6 @@ fun App() {
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-
                                 Text(
                                     text = "📁 ${folder.name}",
                                     modifier = Modifier.weight(1f)
@@ -200,31 +213,49 @@ fun App() {
 
                                 IconButton(
                                     onClick = {
-
                                         folderName = folder.name
                                         editingFolder = folder
-
                                     }
                                 ) {
-
                                     Icon(
                                         Icons.Default.Edit,
                                         contentDescription = null
                                     )
-
                                 }
 
                                 IconButton(
                                     onClick = {
+                                        haptic.performHapticFeedback(
+                                            HapticFeedbackType.LongPress
+                                        )
+
+                                        deletedFolder = folder
+                                        deletedFolderIndex = folders.indexOf(folder)
 
                                         repository.deleteFolder(folder.id)
 
                                         folders.clear()
                                         folders.addAll(repository.getFolders())
 
-                                    }
-                                ) {
+                                        scope.launch {
+                                            snackbarHostState.currentSnackbarData?.dismiss()
 
+                                            val result = snackbarHostState.showSnackbar(
+                                                message = "Folder Deleted",
+                                                actionLabel = "UNDO",
+                                                duration = SnackbarDuration.Short
+                                            )
+
+                                            if (result == SnackbarResult.ActionPerformed) {
+                                                repository.addFolder(
+                                                    deletedFolder!!.name
+                                                )
+                                                folders.clear()
+                                                folders.addAll(repository.getFolders())
+                                            }
+                                        }
+                                    }
+                                ){
                                     Icon(
                                         Icons.Default.Delete,
                                         contentDescription = null,
