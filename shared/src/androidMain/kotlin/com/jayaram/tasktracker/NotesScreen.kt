@@ -22,6 +22,9 @@ import com.jayaram.tasktracker.database.DatabaseDriverFactory
 import com.jayaram.tasktracker.model.Note
 import com.jayaram.tasktracker.repository.NoteRepository
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.ArrowBack
 
 @Composable
 fun NotesScreen(
@@ -31,6 +34,12 @@ fun NotesScreen(
 
     var noteText by remember { mutableStateOf("") }
     var editingNote by remember { mutableStateOf<Note?>(null) }
+
+    var selectionMode by remember { mutableStateOf(false) }
+
+    val selectedNotes = remember {
+        mutableStateListOf<Note>()
+    }
 
     val haptic = LocalHapticFeedback.current
 
@@ -80,10 +89,43 @@ fun NotesScreen(
                     .padding(16.dp)
             ) {
 
-                Button(
-                    onClick = onBack
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("← Back")
+
+                    IconButton(
+                        onClick = {
+
+                            haptic.performHapticFeedback(
+                                HapticFeedbackType.TextHandleMove
+                            )
+
+                            if (selectionMode) {
+                                selectionMode = false
+                                selectedNotes.clear()
+                            } else {
+                                onBack()
+                            }
+
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+
+                    if (selectionMode) {
+
+                        Text(
+                            text = "${selectedNotes.size} Selected",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -92,6 +134,10 @@ fun NotesScreen(
                     text = folder.name,
                     style = MaterialTheme.typography.headlineLarge
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 TextField(
                     value = noteText,
@@ -178,17 +224,72 @@ fun NotesScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .combinedClickable(
+
+                                        onClick = {
+
+                                            if (selectionMode) {
+
+                                                if (selectedNotes.contains(note)) {
+
+                                                    selectedNotes.remove(note)
+
+                                                    if (selectedNotes.isEmpty()) {
+                                                        selectionMode = false
+                                                    }
+
+                                                } else {
+
+                                                    selectedNotes.add(note)
+                                                }
+
+                                            }
+
+                                        },
+
+                                        onLongClick = {
+
+                                            haptic.performHapticFeedback(
+                                                HapticFeedbackType.LongPress
+                                            )
+
+                                            selectionMode = true
+
+                                            if (!selectedNotes.contains(note)) {
+                                                selectedNotes.add(note)
+                                            }
+
+                                        }
+
+                                    )
                                     .padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
 
-                                Text(
-                                    text = note.text,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
 
-                                IconButton(
+                                    if (selectionMode) {
+
+                                        Checkbox(
+                                            checked = selectedNotes.contains(note),
+                                            onCheckedChange = null
+                                        )
+
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                    }
+
+                                    Text(
+                                        text = note.text
+                                    )
+                                }
+
+                                if (!selectionMode) {
+
+                                    IconButton(
                                     onClick = {
                                         haptic.performHapticFeedback(
                                             HapticFeedbackType.LongPress
@@ -201,6 +302,7 @@ fun NotesScreen(
                                         imageVector = Icons.Default.Edit,
                                         contentDescription = "Edit Note"
                                     )
+                                }
                                 }
 
                                 IconButton(
