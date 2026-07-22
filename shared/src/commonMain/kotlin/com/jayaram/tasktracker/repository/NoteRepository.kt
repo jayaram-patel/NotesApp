@@ -1,16 +1,11 @@
 package com.jayaram.tasktracker.repository
 
 import com.jayaram.tasktracker.database.AppDatabase
-import com.jayaram.tasktracker.database.DatabaseDriverFactory
 import com.jayaram.tasktracker.model.Note
 
 class NoteRepository(
-    databaseDriverFactory: DatabaseDriverFactory
+    private val database: AppDatabase
 ) {
-
-    private val database = AppDatabase(
-        databaseDriverFactory.createDriver()
-    )
 
     private val queries = database.appDatabaseQueries
 
@@ -57,5 +52,4 @@ class NoteRepository(
                 )
             }
     }
-
 }

@@ -15,20 +15,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jayaram.tasktracker.database.DatabaseDriverFactory
 import com.jayaram.tasktracker.model.Note
 import com.jayaram.tasktracker.repository.NoteRepository
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.ArrowBack
 
 @Composable
 fun NotesScreen(
     folder: Folder,
+    noteRepository: NoteRepository,
     onBack: () -> Unit
 ){
 
@@ -43,14 +40,6 @@ fun NotesScreen(
 
     val haptic = LocalHapticFeedback.current
 
-    val context = LocalContext.current
-
-    val repository = remember {
-        NoteRepository(
-            DatabaseDriverFactory(context)
-        )
-    }
-
     val notes = remember { mutableStateListOf<Note>() }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -61,7 +50,7 @@ fun NotesScreen(
 
     LaunchedEffect(folder.id) {
         notes.clear()
-        notes.addAll(repository.getNotes(folder.id))
+        notes.addAll(noteRepository.getNotes(folder.id))
     }
 
     MaterialTheme {
@@ -177,14 +166,14 @@ fun NotesScreen(
 
                         if (editingNote == null) {
 
-                            repository.addNote(
+                            noteRepository.addNote(
                                 folder.id,
                                 noteText
                             )
 
                         } else {
 
-                            repository.updateNote(
+                            noteRepository.updateNote(
                                 editingNote!!.copy(
                                     text = noteText
                                 )
@@ -195,7 +184,7 @@ fun NotesScreen(
 
                         notes.clear()
                         notes.addAll(
-                            repository.getNotes(folder.id)
+                            noteRepository.getNotes(folder.id)
                         )
 
                         noteText = ""
@@ -315,11 +304,11 @@ fun NotesScreen(
                                         deletedNote = note
                                         deletedIndex = notes.indexOf(note)
 
-                                        repository.deleteNote(note.id)
+                                        noteRepository.deleteNote(note.id)
 
                                         notes.clear()
                                         notes.addAll(
-                                            repository.getNotes(folder.id)
+                                            noteRepository.getNotes(folder.id)
                                         )
 
                                         scope.launch {
@@ -332,14 +321,14 @@ fun NotesScreen(
                                                 )
 
                                             if (result == SnackbarResult.ActionPerformed) {
-                                                repository.addNote(
+                                                noteRepository.addNote(
                                                     folder.id,
                                                     deletedNote!!.text
                                                 )
 
                                                 notes.clear()
                                                 notes.addAll(
-                                                    repository.getNotes(folder.id)
+                                                    noteRepository.getNotes(folder.id)
                                                 )
                                             }
                                         }

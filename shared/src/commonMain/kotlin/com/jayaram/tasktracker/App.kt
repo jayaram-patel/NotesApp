@@ -10,35 +10,24 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.launch
 
-import com.jayaram.tasktracker.database.DatabaseDriverFactory
 import com.jayaram.tasktracker.model.Folder
 import com.jayaram.tasktracker.repository.FolderRepository
 
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
-import tasktracker.shared.generated.resources.Res
-import org.jetbrains.compose.resources.painterResource
-import tasktracker.shared.generated.resources.app_logo
-
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import com.jayaram.tasktracker.repository.NoteRepository
+
 @Composable
-fun App() {
+fun App(
+    folderRepository: FolderRepository,
+    noteRepository: NoteRepository
+) {
     val haptic = LocalHapticFeedback.current
-
-    val context = LocalContext.current
-
-    val repository = remember {
-        FolderRepository(
-            DatabaseDriverFactory(context)
-        )
-    }
 
     var selectedFolder by remember {
         mutableStateOf<Folder?>(null)
@@ -64,7 +53,7 @@ fun App() {
 
     LaunchedEffect(Unit) {
         folders.clear()
-        folders.addAll(repository.getFolders())
+        folders.addAll(folderRepository.getFolders())
     }
 
     MaterialTheme {
@@ -72,6 +61,7 @@ fun App() {
 
             NotesScreen(
                 folder = selectedFolder!!,
+                noteRepository = noteRepository,
                 onBack = {
                     selectedFolder = null
                 }
@@ -81,24 +71,15 @@ fun App() {
         }
 
         Scaffold(
+            contentWindowInsets = WindowInsets(0),
             snackbarHost = {
-                SnackbarHost(
-                    hostState = snackbarHostState
-                ) { snackbarData ->
-                    Snackbar(
-                        snackbarData = snackbarData,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        actionColor = Color.Red
-                    )
-                }
+                SnackbarHost(hostState = snackbarHostState)
             }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .safeDrawingPadding()
-                    .padding(innerPadding)
+                    .windowInsetsPadding(WindowInsets.statusBars)                    .padding(innerPadding)
                     .padding(16.dp)
             ) {
                 Row(
@@ -156,9 +137,9 @@ fun App() {
                         }
 
                         if (editingFolder == null) {
-                            repository.addFolder(folderName)
+                            folderRepository.addFolder(folderName)
                         } else {
-                            repository.updateFolder(
+                            folderRepository.updateFolder(
                                 editingFolder!!.copy(
                                     name = folderName
                                 )
@@ -167,7 +148,7 @@ fun App() {
                         }
 
                         folders.clear()
-                        folders.addAll(repository.getFolders())
+                        folders.addAll(folderRepository.getFolders())
                         folderName = ""
                     }
                 ) {
@@ -232,10 +213,10 @@ fun App() {
                                         deletedFolder = folder
                                         deletedFolderIndex = folders.indexOf(folder)
 
-                                        repository.deleteFolder(folder.id)
+                                        folderRepository.deleteFolder(folder.id)
 
                                         folders.clear()
-                                        folders.addAll(repository.getFolders())
+                                        folders.addAll(folderRepository.getFolders())
 
                                         scope.launch {
                                             snackbarHostState.currentSnackbarData?.dismiss()
@@ -247,11 +228,11 @@ fun App() {
                                             )
 
                                             if (result == SnackbarResult.ActionPerformed) {
-                                                repository.addFolder(
+                                                folderRepository.addFolder(
                                                     deletedFolder!!.name
                                                 )
                                                 folders.clear()
-                                                folders.addAll(repository.getFolders())
+                                                folders.addAll(folderRepository.getFolders())
                                             }
                                         }
                                     }
