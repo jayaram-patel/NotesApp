@@ -73,7 +73,6 @@ fun NotesScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .safeDrawingPadding()
                     .padding(innerPadding)
                     .padding(16.dp)
             ) {
