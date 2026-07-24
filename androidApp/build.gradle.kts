@@ -24,20 +24,36 @@ android {
 
     defaultConfig {
         applicationId = "com.jayaram.tasktracker"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        minSdk = 26
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("keystore/tasktracker-release-key.jks")
+            storePassword = "qwertyuiop"
+            keyAlias = "tasktracker"
+            keyPassword = "qwertyuiop"
+        }
+    }
+
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
+
+            // Disable these for now
+            isMinifyEnabled = false
+            isShrinkResources = false
+
+            // Use the release keystore
+            signingConfig = signingConfigs.getByName("release")
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -45,6 +61,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

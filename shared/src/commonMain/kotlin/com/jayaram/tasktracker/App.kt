@@ -45,9 +45,6 @@ fun App(
         mutableStateListOf<Folder>()
     }
 
-    var deletedFolder by remember { mutableStateOf<Folder?>(null) }
-    var deletedFolderIndex by remember { mutableIntStateOf(-1) }
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -210,16 +207,14 @@ fun App(
                                             HapticFeedbackType.LongPress
                                         )
 
-                                        deletedFolder = folder
-                                        deletedFolderIndex = folders.indexOf(folder)
+                                        val deletedFolder = folder
 
-                                        folderRepository.deleteFolder(folder.id)
+                                        folderRepository.deleteFolder(deletedFolder.id)
 
                                         folders.clear()
                                         folders.addAll(folderRepository.getFolders())
 
                                         scope.launch {
-                                            snackbarHostState.currentSnackbarData?.dismiss()
 
                                             val result = snackbarHostState.showSnackbar(
                                                 message = "Folder Deleted",
@@ -228,9 +223,11 @@ fun App(
                                             )
 
                                             if (result == SnackbarResult.ActionPerformed) {
+
                                                 folderRepository.addFolder(
-                                                    deletedFolder!!.name
+                                                    deletedFolder.name
                                                 )
+
                                                 folders.clear()
                                                 folders.addAll(folderRepository.getFolders())
                                             }

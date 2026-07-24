@@ -45,9 +45,6 @@ fun NotesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var deletedNote by remember { mutableStateOf<Note?>(null) }
-    var deletedIndex by remember { mutableIntStateOf(-1) }
-
     LaunchedEffect(folder.id) {
         notes.clear()
         notes.addAll(noteRepository.getNotes(folder.id))
@@ -300,10 +297,9 @@ fun NotesScreen(
                                             HapticFeedbackType.LongPress
                                         )
 
-                                        deletedNote = note
-                                        deletedIndex = notes.indexOf(note)
+                                        val deletedNote = note
 
-                                        noteRepository.deleteNote(note.id)
+                                        noteRepository.deleteNote(deletedNote.id)
 
                                         notes.clear()
                                         notes.addAll(
@@ -320,9 +316,10 @@ fun NotesScreen(
                                                 )
 
                                             if (result == SnackbarResult.ActionPerformed) {
+
                                                 noteRepository.addNote(
                                                     folder.id,
-                                                    deletedNote!!.text
+                                                    deletedNote.text
                                                 )
 
                                                 notes.clear()
