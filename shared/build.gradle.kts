@@ -19,23 +19,27 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     androidLibrary {
-       namespace = "com.jayaram.tasktracker.shared"
-       compileSdk = libs.versions.android.compileSdk.get().toInt()
-       minSdk = libs.versions.android.minSdk.get().toInt()
-    
-       compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
-       }
+        namespace = "com.jayaram.tasktracker.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+        }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.sqldelight.android)
             implementation(libs.compose.uiToolingPreview)
-            implementation(libs.sqldelight.android)
         }
+
+        iosMain.dependencies {
+            implementation(libs.sqldelight.native)
+        }
+
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -46,6 +50,7 @@ kotlin {
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
         }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
