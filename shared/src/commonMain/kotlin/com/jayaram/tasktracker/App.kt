@@ -70,7 +70,16 @@ fun App(
         Scaffold(
             contentWindowInsets = WindowInsets(0),
             snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
+                SnackbarHost(
+                    hostState = snackbarHostState
+                ) { snackbarData ->
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionColor = Color.Red
+                    )
+                }
             }
         ) { innerPadding ->
             Column(
