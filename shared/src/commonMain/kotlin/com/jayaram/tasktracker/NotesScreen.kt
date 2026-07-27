@@ -22,6 +22,12 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.filled.ArrowBack
 
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.rememberLazyListState
+
 @Composable
 fun NotesScreen(
     folder: Folder,
@@ -40,10 +46,24 @@ fun NotesScreen(
 
     val haptic = LocalHapticFeedback.current
 
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    val listState = rememberLazyListState()
+
     val notes = remember { mutableStateListOf<Note>() }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(listState.isScrollInProgress) {
+
+        if (listState.isScrollInProgress) {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+        }
+
+    }
 
     LaunchedEffect(folder.id) {
         notes.clear()
@@ -70,7 +90,7 @@ fun NotesScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(16.dp)
             ) {
 
@@ -196,7 +216,9 @@ fun NotesScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                LazyColumn {
+                LazyColumn(
+                    state = listState
+                ) {
 
                     items(notes) { note ->
 

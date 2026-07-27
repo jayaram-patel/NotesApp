@@ -18,9 +18,16 @@ import kotlinx.coroutines.launch
 import com.jayaram.tasktracker.model.Folder
 import com.jayaram.tasktracker.repository.FolderRepository
 
+//for haptics
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import com.jayaram.tasktracker.repository.NoteRepository
+
+//for hiding keyboard
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+
 
 @Composable
 fun App(
@@ -28,6 +35,9 @@ fun App(
     noteRepository: NoteRepository
 ) {
     val haptic = LocalHapticFeedback.current
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     var selectedFolder by remember {
         mutableStateOf<Folder?>(null)
@@ -45,8 +55,19 @@ fun App(
         mutableStateListOf<Folder>()
     }
 
+    val listState = rememberLazyListState()
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(listState.isScrollInProgress) {
+
+        if (listState.isScrollInProgress) {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+        }
+
+    }
 
     LaunchedEffect(Unit) {
         folders.clear()
@@ -85,7 +106,7 @@ fun App(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.statusBars)                    .padding(innerPadding)
+                    .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(16.dp)
             ) {
                 Row(
@@ -156,6 +177,8 @@ fun App(
                         folders.clear()
                         folders.addAll(folderRepository.getFolders())
                         folderName = ""
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
                     }
                 ) {
                     Text(
@@ -173,7 +196,9 @@ fun App(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                LazyColumn {
+                LazyColumn(
+                    state = listState
+                ) {
                     items(folders) { folder ->
                         Card(
                             modifier = Modifier
