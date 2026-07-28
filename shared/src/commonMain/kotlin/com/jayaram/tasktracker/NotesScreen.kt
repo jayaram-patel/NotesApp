@@ -32,7 +32,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 fun NotesScreen(
     folder: Folder,
     noteRepository: NoteRepository,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    openBrowser: (String) -> Unit
 ){
 
     var noteText by remember { mutableStateOf("") }
@@ -73,6 +74,7 @@ fun NotesScreen(
     MaterialTheme {
 
         Scaffold(
+
             snackbarHost = {
                 SnackbarHost(
                     hostState = snackbarHostState
@@ -84,7 +86,26 @@ fun NotesScreen(
                         actionColor = Color.Red
                     )
                 }
+            },
+
+            floatingActionButton = {
+
+                FloatingActionButton(
+
+                    onClick = {
+
+                        openBrowser("https://www.google.com")
+
+                    }
+
+                ) {
+
+                    Text("🌐")
+
+                }
+
             }
+
         ) { innerPadding ->
 
             Column(

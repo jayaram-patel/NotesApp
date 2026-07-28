@@ -43,6 +43,10 @@ fun App(
         mutableStateOf<Folder?>(null)
     }
 
+    var browserUrl by remember {
+        mutableStateOf<String?>(null)
+    }
+
     var folderName by remember {
         mutableStateOf("")
     }
@@ -75,6 +79,30 @@ fun App(
     }
 
     MaterialTheme {
+        if (browserUrl != null) {
+
+            BrowserScreen(
+                initialUrl = browserUrl!!,
+                onBack = {
+                    browserUrl = null
+                }
+            )
+
+            return@MaterialTheme
+        }
+
+        if (browserUrl != null) {
+
+            BrowserScreen(
+                initialUrl = browserUrl!!,
+                onBack = {
+                    browserUrl = null
+                }
+            )
+
+            return@MaterialTheme
+        }
+
         if (selectedFolder != null) {
 
             NotesScreen(
@@ -82,6 +110,9 @@ fun App(
                 noteRepository = noteRepository,
                 onBack = {
                     selectedFolder = null
+                },
+                openBrowser = { url ->
+                    browserUrl = url
                 }
             )
 
