@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun BrowserScreen(
-    initialUrl: String = "https://www.google.com",
+    initialUrl: String = "https://www.amazon.in",
     onBack: () -> Unit
 ) {
 
