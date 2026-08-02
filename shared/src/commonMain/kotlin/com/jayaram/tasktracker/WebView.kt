@@ -6,5 +6,6 @@ import androidx.compose.ui.Modifier
 @Composable
 expect fun WebView(
     url: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier,
+    onTitleChanged: (String) -> Unit = {}
 )

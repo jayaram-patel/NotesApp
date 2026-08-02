@@ -1,77 +1,61 @@
 package com.jayaram.tasktracker
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.padding
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserScreen(
-    initialUrl: String = "https://www.amazon.in",
+    initialUrl: String,
     onBack: () -> Unit
 ) {
 
-    var url by remember {
-        mutableStateOf(initialUrl)
+    var pageTitle by remember {
+        mutableStateOf("Loading...")
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-    ) {
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-        ) {
-
-            IconButton(
-                onClick = onBack
-            ) {
-
-                Icon(
-                    Icons.Default.ArrowBack,
-                    contentDescription = null
-                )
-
-            }
-
-            OutlinedTextField(
-                value = url,
-                onValueChange = {
-                    url = it
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(pageTitle)
                 },
-                modifier = Modifier.weight(1f),
-                singleLine = true
-            )
-
-            IconButton(
-                onClick = {
-                    // Reload later
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
                 }
-            ) {
-
-                Icon(
-                    Icons.Default.Refresh,
-                    contentDescription = null
-                )
-
-            }
-
+            )
         }
-
-        Divider()
+    ) { padding ->
 
         WebView(
-            url = url,
-            modifier = Modifier.fillMaxSize()
+            url = initialUrl,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            onTitleChanged = {
+                pageTitle = it
+            }
         )
-
     }
 }

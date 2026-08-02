@@ -28,7 +28,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.rememberLazyListState
 
-import com.jayaram.tasktracker.utils.extractUrls
+import com.jayaram.tasktracker.components.NoteContent
+
 @Composable
 fun NotesScreen(
     folder: Folder,
@@ -310,42 +311,12 @@ fun NotesScreen(
 
                                         Spacer(modifier = Modifier.width(8.dp))
                                     }
-
-                                    val urls = remember(note.text) {
-                                        extractUrls(note.text)
-                                    }
-
-                                    if (urls.isEmpty()) {
-
-                                        Text(
-                                            text = note.text
-                                        )
-
-                                    } else {
-
-                                        Column {
-
-                                            val normalText = note.text.replace(urls.first(), "")
-
-                                            if (normalText.isNotBlank()) {
-
-                                                Text(
-                                                    text = normalText.trim()
-                                                )
-
-                                            }
-
-                                            Text(
-                                                text = urls.first(),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.clickable {
-
-                                                    openBrowser(urls.first())
-
-                                                }
-                                            )
+                                    NoteContent(
+                                        note = note.text,
+                                        onLinkClick = { url ->
+                                            openBrowser(url)
                                         }
-                                    }
+                                    )
                                 }
 
                                 if (!selectionMode) {
