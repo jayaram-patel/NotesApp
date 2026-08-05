@@ -30,6 +30,10 @@ fun BrowserScreen(
         mutableStateOf("Loading...")
     }
 
+    var isDark by remember {
+        mutableStateOf(false)
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(

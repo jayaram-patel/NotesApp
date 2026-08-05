@@ -11,6 +11,16 @@ import androidx.compose.ui.viewinterop.AndroidView
 import android.util.Log
 import android.webkit.JavascriptInterface
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
+import androidx.compose.foundation.layout.fillMaxSize
+
 class WebAppInterface {
 
     @JavascriptInterface
@@ -30,49 +40,78 @@ actual fun WebView(
     onTitleChanged: (String) -> Unit
 ) {
 
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
+    var webView by remember {
+        mutableStateOf<android.webkit.WebView?>(null)
+    }
 
-            android.webkit.WebView(context).apply {
+    var isDark by remember {
+        mutableStateOf(false)
+    }
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
 
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
+        Button(
+            onClick = {
 
-                webViewClient = object : WebViewClient() {
+                isDark = !isDark
 
-                    override fun onPageFinished(
-                        view: android.webkit.WebView?,
-                        url: String?
-                    ) {
+                val js = if (isDark) {
+                    "setDarkTheme();"
+                } else {
+                    "setLightTheme();"
+                }
 
-                        super.onPageFinished(view, url)
+                webView?.evaluateJavascript(js, null)
 
-                        view?.evaluateJavascript(
-                            """
+            }
+        ) {
+            Text("Toggle Theme")
+        }
+
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+
+                android.webkit.WebView(context).apply {
+                    webView = this
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+
+                    webViewClient = object : WebViewClient() {
+
+                        override fun onPageFinished(
+                            view: android.webkit.WebView?,
+                            url: String?
+                        ) {
+
+                            super.onPageFinished(view, url)
+
+                            view?.evaluateJavascript(
+                                """
                 document.body.style.zoom = "110%";
                 """.trimIndent(),
-                            null
-                        )
+                                null
+                            )
+                        }
                     }
-                }
 
-                webChromeClient = object : WebChromeClient() {
-                    override fun onReceivedTitle(
-                        view: android.webkit.WebView?,
-                        title: String?
-                    ) {
-                        onTitleChanged(title ?: "Web Page")
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onReceivedTitle(
+                            view: android.webkit.WebView?,
+                            title: String?
+                        ) {
+                            onTitleChanged(title ?: "Web Page")
+                        }
                     }
-                }
 
-                addJavascriptInterface(
-                    WebAppInterface(),
-                    "Android"
-                )
+                    addJavascriptInterface(
+                        WebAppInterface(),
+                        "Android"
+                    )
 
-                //temporarily for local HTML page
-                val html = """
+                    //temporarily for local HTML page
+                    val html = """
                 <!DOCTYPE html>
                 <html>
                 
@@ -126,6 +165,14 @@ actual fun WebView(
                 Submit
                 </button>
                 
+                <button onclick="setLightTheme()">
+                Light Theme
+                </button>
+
+                <button onclick="setDarkTheme()">
+                Dark Theme
+                </button>
+                
                 <script>
                 
                 function submitForm(){
@@ -151,6 +198,20 @@ actual fun WebView(
                 
                 }
                 
+                function setDarkTheme(){
+
+                    document.body.style.background = "#222222";
+                    document.body.style.color = "white";
+
+                }
+
+                function setLightTheme(){
+
+                    document.body.style.background = "#f5f5f5";
+                    document.body.style.color = "black";
+
+                }
+                
                 </script>
                 
                 </body>
@@ -158,17 +219,18 @@ actual fun WebView(
                 </html>
                 """.trimIndent()
 
-                loadDataWithBaseURL(
-                    null,
-                    html,
-                    "text/html",
-                    "UTF-8",
-                    null
-                )
+                    loadDataWithBaseURL(
+                        null,
+                        html,
+                        "text/html",
+                        "UTF-8",
+                        null
+                    )
+                }
+            },
+            update = {
+                // Do nothing for now
             }
-        },
-        update = {
-            //Do nothing for now
-        }
-    )
+        )
+    }
 }
