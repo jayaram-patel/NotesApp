@@ -102,7 +102,7 @@ fun NotesScreen(
 
                 ) {
 
-                    Text("🌐")
+                    Text("\uD83D\uDCDE")
 
                 }
 
