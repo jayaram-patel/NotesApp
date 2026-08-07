@@ -91,3 +91,7 @@ WHERE id=?;
 
 deleteAllSubmissions:
 DELETE FROM ContactSubmission;
+
+getSubmissionCount:
+SELECT COUNT(*)
+FROM ContactSubmission;

@@ -27,14 +27,19 @@ import com.jayaram.tasktracker.repository.NoteRepository
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-
+import androidx.compose.runtime.mutableLongStateOf
+import com.jayaram.tasktracker.repository.ContactRepository
 
 @Composable
 fun App(
     folderRepository: FolderRepository,
-    noteRepository: NoteRepository
-) {
+    noteRepository: NoteRepository,
+    contactRepository: ContactRepository
+){
     val haptic = LocalHapticFeedback.current
+    var submissionCount by remember {
+        mutableLongStateOf(0L)
+    }
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -74,22 +79,14 @@ fun App(
     }
 
     LaunchedEffect(Unit) {
+
         folders.clear()
         folders.addAll(folderRepository.getFolders())
+
+        submissionCount = contactRepository.getSubmissionCount()
     }
 
     MaterialTheme {
-        if (browserUrl != null) {
-
-            BrowserScreen(
-                initialUrl = browserUrl!!,
-                onBack = {
-                    browserUrl = null
-                }
-            )
-
-            return@MaterialTheme
-        }
 
         if (browserUrl != null) {
 
@@ -143,167 +140,187 @@ fun App(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = null,
                         modifier = Modifier.size(42.dp)
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Text(
                         text = "My Notes",
                         style = MaterialTheme.typography.headlineLarge
                     )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                TextField(
-                    value = folderName,
-                    onValueChange = {
-                        folderName = it
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = {
-                        Text("Folder name")
                     }
-                )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        haptic.performHapticFeedback(
-                            HapticFeedbackType.LongPress
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+
+                        Text(
+                            text = "📨 Contact Form",
+                            style = MaterialTheme.typography.titleMedium
                         )
 
-                        if (folderName.isBlank()) {
-                            scope.launch {
-                                snackbarHostState.currentSnackbarData?.dismiss()
+                        Spacer(modifier = Modifier.height(6.dp))
 
-                                snackbarHostState.showSnackbar(
-                                    message = "Enter folder name first",
-                                    duration = SnackbarDuration.Short
-                                )
-                            }
-                            return@Button
-                        }
-
-                        if (editingFolder == null) {
-                            folderRepository.addFolder(folderName)
-                        } else {
-                            folderRepository.updateFolder(
-                                editingFolder!!.copy(
-                                    name = folderName
-                                )
-                            )
-                            editingFolder = null
-                        }
-
-                        folders.clear()
-                        folders.addAll(folderRepository.getFolders())
-                        folderName = ""
-                        focusManager.clearFocus()
-                        keyboardController?.hide()
+                        Text(
+                            text = "Total Submissions: $submissionCount",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
-                ) {
-                    Text(
-                        if (editingFolder == null)
-                            "Create Folder"
-                        else
-                            "Save Changes"
-                    )
                 }
 
-                Spacer(modifier = Modifier.height(30.dp))
-                Text(
-                    text = "All Folders",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                LazyColumn(
-                    state = listState
-                ) {
-                    items(folders) { folder ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp)
-                                .clickable {
-                                    haptic.performHapticFeedback(
-                                        HapticFeedbackType.TextHandleMove
+                    TextField(
+                        value = folderName,
+                        onValueChange = {
+                            folderName = it
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text("Folder name")
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            haptic.performHapticFeedback(
+                                HapticFeedbackType.LongPress
+                            )
+
+                            if (folderName.isBlank()) {
+                                scope.launch {
+                                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                                    snackbarHostState.showSnackbar(
+                                        message = "Enter folder name first",
+                                        duration = SnackbarDuration.Short
                                     )
-                                    selectedFolder = folder
                                 }
-                        ) {
-                            Row(
+                                return@Button
+                            }
+
+                            if (editingFolder == null) {
+                                folderRepository.addFolder(folderName)
+                            } else {
+                                folderRepository.updateFolder(
+                                    editingFolder!!.copy(
+                                        name = folderName
+                                    )
+                                )
+                                editingFolder = null
+                            }
+
+                            folders.clear()
+                            folders.addAll(folderRepository.getFolders())
+                            folderName = ""
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                        }
+                    ) {
+                        Text(
+                            if (editingFolder == null)
+                                "Create Folder"
+                            else
+                                "Save Changes"
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(30.dp))
+                    Text(
+                        text = "All Folders",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    LazyColumn(
+                        state = listState
+                    ) {
+                        items(folders) { folder ->
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "📁 ${folder.name}",
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                IconButton(
-                                    onClick = {
-                                        folderName = folder.name
-                                        editingFolder = folder
-                                    }
-                                ) {
-                                    Icon(
-                                        Icons.Default.Edit,
-                                        contentDescription = null
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {
+                                    .padding(vertical = 6.dp)
+                                    .clickable {
                                         haptic.performHapticFeedback(
-                                            HapticFeedbackType.LongPress
+                                            HapticFeedbackType.TextHandleMove
                                         )
+                                        selectedFolder = folder
+                                    }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "📁 ${folder.name}",
+                                        modifier = Modifier.weight(1f)
+                                    )
 
-                                        val deletedFolder = folder
+                                    IconButton(
+                                        onClick = {
+                                            folderName = folder.name
+                                            editingFolder = folder
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Edit,
+                                            contentDescription = null
+                                        )
+                                    }
 
-                                        folderRepository.deleteFolder(deletedFolder.id)
-
-                                        folders.clear()
-                                        folders.addAll(folderRepository.getFolders())
-
-                                        scope.launch {
-
-                                            val result = snackbarHostState.showSnackbar(
-                                                message = "Folder Deleted",
-                                                actionLabel = "UNDO",
-                                                duration = SnackbarDuration.Short
+                                    IconButton(
+                                        onClick = {
+                                            haptic.performHapticFeedback(
+                                                HapticFeedbackType.LongPress
                                             )
 
-                                            if (result == SnackbarResult.ActionPerformed) {
+                                            val deletedFolder = folder
 
-                                                folderRepository.addFolder(
-                                                    deletedFolder.name
+                                            folderRepository.deleteFolder(deletedFolder.id)
+
+                                            folders.clear()
+                                            folders.addAll(folderRepository.getFolders())
+
+                                            scope.launch {
+
+                                                val result = snackbarHostState.showSnackbar(
+                                                    message = "Folder Deleted",
+                                                    actionLabel = "UNDO",
+                                                    duration = SnackbarDuration.Short
                                                 )
 
-                                                folders.clear()
-                                                folders.addAll(folderRepository.getFolders())
+                                                if (result == SnackbarResult.ActionPerformed) {
+
+                                                    folderRepository.addFolder(
+                                                        deletedFolder.name
+                                                    )
+
+                                                    folders.clear()
+                                                    folders.addAll(folderRepository.getFolders())
+                                                }
                                             }
                                         }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = null,
+                                            tint = Color.Red
+                                        )
                                     }
-                                ){
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = null,
-                                        tint = Color.Red
-                                    )
                                 }
                             }
                         }
@@ -312,4 +329,3 @@ fun App(
             }
         }
     }
-}

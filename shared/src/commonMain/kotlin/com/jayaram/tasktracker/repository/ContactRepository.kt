@@ -1,7 +1,7 @@
 package com.jayaram.tasktracker.repository
 
 import com.jayaram.tasktracker.database.AppDatabase
-
+import android.util.Log
 
 class ContactRepository(
     private val database: AppDatabase
@@ -32,5 +32,19 @@ class ContactRepository(
 
     fun deleteAll() {
         queries.deleteAllSubmissions()
+    }
+
+    fun getSubmissionCount(): Long {
+
+        val count = queries
+            .getSubmissionCount()
+            .executeAsOne()
+
+        Log.d(
+            "ContactForm",
+            "Submission Count = $count"
+        )
+
+        return count
     }
 }

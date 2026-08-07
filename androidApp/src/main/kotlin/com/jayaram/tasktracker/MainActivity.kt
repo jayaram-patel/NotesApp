@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.jayaram.tasktracker.repository.FolderRepository
 import com.jayaram.tasktracker.repository.NoteRepository
+import com.jayaram.tasktracker.repository.ContactRepository
 
 class MainActivity : ComponentActivity() {
 
@@ -23,10 +24,13 @@ class MainActivity : ComponentActivity() {
 
         val noteRepository = NoteRepository(database)
 
+        val contactRepository = ContactRepository(database)
+
         setContent {
             App(
                 folderRepository = folderRepository,
-                noteRepository = noteRepository
+                noteRepository = noteRepository,
+                contactRepository = contactRepository
             )
         }
     }

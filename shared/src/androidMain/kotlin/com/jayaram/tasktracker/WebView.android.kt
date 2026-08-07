@@ -19,13 +19,19 @@ class WebAppInterface(
     private val repository: ContactRepository,
     private val context: Context
 ) {
-
     @JavascriptInterface
     fun submitForm(
         name: String,
         email: String,
         message: String
     ) {
+
+        Log.d("ContactForm", "========== CONTACT FORM ==========")
+        Log.d("ContactForm", "Name    : $name")
+        Log.d("ContactForm", "Email   : $email")
+        Log.d("ContactForm", "Message : $message")
+        Log.d("ContactForm", "==================================")
+
         repository.insertSubmission(
             name,
             email,
