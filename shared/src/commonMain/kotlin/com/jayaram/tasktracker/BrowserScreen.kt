@@ -63,7 +63,3 @@ fun BrowserScreen(
         )
     }
 }
-
-
-//now i just need to implement the contact us page
-//and

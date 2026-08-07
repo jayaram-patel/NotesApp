@@ -57,3 +57,37 @@ updateNote:
 UPDATE Note
 SET text=?
 WHERE id=?;
+
+--------------------------
+-- Contact Submission Table
+--------------------------
+
+CREATE TABLE ContactSubmission (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    message TEXT NOT NULL
+);
+
+--------------------------
+-- Contact Submission Queries
+--------------------------
+
+getAllSubmissions:
+SELECT *
+FROM ContactSubmission;
+
+insertSubmission:
+INSERT INTO ContactSubmission(
+    name,
+    email,
+    message
+)
+VALUES (?, ?, ?);
+
+deleteSubmission:
+DELETE FROM ContactSubmission
+WHERE id=?;
+
+deleteAllSubmissions:
+DELETE FROM ContactSubmission;

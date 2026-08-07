@@ -1,43 +1,23 @@
-body{
+function submitForm() {
 
-    font-family: Arial, sans-serif;
-    padding:30px;
-    background:#f5f5f5;
+    let name = document.getElementById("name").value;
+    let email = document.getElementById("email").value;
+    let message = document.getElementById("message").value;
 
-}
+    if (name === "" || email === "" || message === "") {
+        Android.showError();
+        return;
+    }
 
-h2{
+    Android.submitForm(
+        name,
+        email,
+        message
+    );
 
-    text-align:center;
+    Android.showSuccess();
 
-}
-
-input,
-textarea{
-
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    margin-bottom:15px;
-    font-size:16px;
-
-    box-sizing:border-box;
-
-}
-
-button{
-
-    width:100%;
-    padding:14px;
-
-    background:#1976D2;
-
-    color:white;
-
-    border:none;
-
-    font-size:16px;
-
-    cursor:pointer;
-
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("message").value = "";
 }

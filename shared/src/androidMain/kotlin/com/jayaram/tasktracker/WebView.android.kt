@@ -1,27 +1,66 @@
 package com.jayaram.tasktracker
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
+import android.util.Log
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import com.jayaram.tasktracker.repository.ContactRepository
 
-import android.util.Log
-import android.webkit.JavascriptInterface
+import android.widget.Toast
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
 
-class WebAppInterface {
+class WebAppInterface(
+    private val repository: ContactRepository,
+    private val context: Context
+) {
 
     @JavascriptInterface
-    fun submitForm(name: String, email: String, message: String) {
+    fun submitForm(
+        name: String,
+        email: String,
+        message: String
+    ) {
+        repository.insertSubmission(
+            name,
+            email,
+            message
+        )
+    }
 
-        Log.d("ContactForm", "Name: $name")
-        Log.d("ContactForm", "Email: $email")
-        Log.d("ContactForm", "Message: $message")
+    @JavascriptInterface
+    fun showSuccess() {
 
+        Handler(Looper.getMainLooper()).post {
+
+            Toast.makeText(
+                context,
+                "Contact form submitted successfully!",
+                Toast.LENGTH_SHORT
+            ).show()
+
+        }
+    }
+    @JavascriptInterface
+    fun showError() {
+
+        Handler(Looper.getMainLooper()).post {
+
+            Toast.makeText(
+                context,
+                "Please fill all fields!",
+                Toast.LENGTH_SHORT
+            ).show()
+
+        }
     }
 }
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 actual fun WebView(
@@ -29,51 +68,62 @@ actual fun WebView(
     modifier: Modifier,
     onTitleChanged: (String) -> Unit
 ) {
-        AndroidView(
-            modifier = modifier,
-            factory = { context ->
 
-                android.webkit.WebView(context).apply {
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
+    AndroidView(
+        modifier = modifier,
 
-                    webViewClient = object : WebViewClient() {
+        factory = { context ->
 
-                        override fun onPageFinished(
-                            view: android.webkit.WebView?,
-                            url: String?
-                        ) {
+            val database = DatabaseModule.provideDatabase(context)
+            val repository = ContactRepository(database)
 
-                            super.onPageFinished(view, url)
+            android.webkit.WebView(context).apply {
 
-                            view?.evaluateJavascript(
-                                """
-                document.body.style.zoom = "110%";
-                """.trimIndent(),
-                                null
-                            )
-                        }
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+
+                webViewClient = object : WebViewClient() {
+
+                    override fun onPageFinished(
+                        view: android.webkit.WebView?,
+                        url: String?
+                    ) {
+
+                        super.onPageFinished(view, url)
+
+                        view?.evaluateJavascript(
+                            """
+                            document.body.style.zoom = "110%";
+                            """.trimIndent(),
+                            null
+                        )
                     }
-
-                    webChromeClient = object : WebChromeClient() {
-                        override fun onReceivedTitle(
-                            view: android.webkit.WebView?,
-                            title: String?
-                        ) {
-                            onTitleChanged(title ?: "Web Page")
-                        }
-                    }
-
-                    addJavascriptInterface(
-                        WebAppInterface(),
-                        "Android"
-                    )
-
-                    loadUrl("file:///android_asset/contact.html")
                 }
-            },
-            update = {
-                // Do nothing for now
+
+                webChromeClient = object : WebChromeClient() {
+
+                    override fun onReceivedTitle(
+                        view: android.webkit.WebView?,
+                        title: String?
+                    ) {
+                        onTitleChanged(title ?: "Web Page")
+                    }
+                }
+
+                addJavascriptInterface(
+                    WebAppInterface(
+                        repository,
+                        context
+                    ),
+                    "Android"
+                )
+
+                loadUrl("file:///android_asset/contact.html")
             }
-        )
-    }
+        },
+
+        update = {
+            // No updates required for now
+        }
+    )
+}
