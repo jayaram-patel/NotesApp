@@ -124,7 +124,13 @@ actual fun WebView(
                     "Android"
                 )
 
-                loadUrl("file:///android_asset/contact.html")
+                // Check if we are trying to open the contact form with parameters
+                if (url.startsWith("contact_us")) {
+                    val queryParams = url.substringAfter("?", "")
+                    loadUrl("file:///android_asset/contact.html?$queryParams")
+                } else {
+                    loadUrl(url)
+                }
             }
         },
 

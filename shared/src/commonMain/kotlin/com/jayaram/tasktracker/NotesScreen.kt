@@ -90,23 +90,24 @@ fun NotesScreen(
                 }
             },
 
-            floatingActionButton = {
+//            floatingActionButton = {
+//
+//                FloatingActionButton(
+//
+//                    onClick = {
+//
+//                        openBrowser("https://www.google.com")
+//
+//                    }
+//
+//                ) {
+//
+//                    Text("\uD83D\uDCDE")
+//
+//                }
+//
+//            }
 
-                FloatingActionButton(
-
-                    onClick = {
-
-                        openBrowser("https://www.google.com")
-
-                    }
-
-                ) {
-
-                    Text("\uD83D\uDCDE")
-
-                }
-
-            }
 
         ) { innerPadding ->
 
@@ -257,24 +258,19 @@ fun NotesScreen(
                                     .combinedClickable(
 
                                         onClick = {
-
                                             if (selectionMode) {
-
                                                 if (selectedNotes.contains(note)) {
-
                                                     selectedNotes.remove(note)
-
                                                     if (selectedNotes.isEmpty()) {
                                                         selectionMode = false
                                                     }
-
                                                 } else {
-
                                                     selectedNotes.add(note)
                                                 }
-
+                                            } else {
+                                                // NEW: Open the contact form when a note is clicked
+                                                openBrowser("contact_us?note=${note.text}")
                                             }
-
                                         },
 
                                         onLongClick = {

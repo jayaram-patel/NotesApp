@@ -1,3 +1,13 @@
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const noteText = urlParams.get('note');
+    if (noteText) {
+        //change heading to note name
+        document.getElementById("page-title").innerText = noteText;
+        document.getElementById("message").value = "Regarding my note: " + noteText;
+    }
+};
+
 function submitForm() {
 
     let name = document.getElementById("name").value;
