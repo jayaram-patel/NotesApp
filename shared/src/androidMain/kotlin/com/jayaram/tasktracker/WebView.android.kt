@@ -87,8 +87,19 @@ actual fun WebView(
 
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                settings.allowFileAccess = true
+                settings.allowContentAccess = true
 
                 webViewClient = object : WebViewClient() {
+
+                    override fun onReceivedError(
+                        view: android.webkit.WebView?,
+                        request: android.webkit.WebResourceRequest?,
+                        error: android.webkit.WebResourceError?
+                    ) {
+                        super.onReceivedError(view, request, error)
+                        Log.e("WebViewError", "Error loading ${request?.url}: ${error?.description}")
+                    }
 
                     override fun onPageFinished(
                         view: android.webkit.WebView?,
@@ -123,19 +134,22 @@ actual fun WebView(
                     ),
                     "Android"
                 )
-
-                // Check if we are trying to open the contact form with parameters
-                if (url.startsWith("contact_us")) {
-                    val queryParams = url.substringAfter("?", "")
-                    loadUrl("file:///android_asset/contact.html?$queryParams")
-                } else {
-                    loadUrl(url)
-                }
             }
         },
 
-        update = {
-            // No updates required for now
+        update = { webView ->
+            val targetUrl = if (url.startsWith("contact_us")) {
+                val queryParams = url.substringAfter("?", "")
+                "file:///android_asset/contact.html?$queryParams"
+            } else {
+                url
+            }
+
+            Log.d("WebViewUpdate", "Current: ${webView.url}, Target: $targetUrl")
+
+            if (webView.url != targetUrl) {
+                webView.loadUrl(targetUrl)
+            }
         }
     )
 }

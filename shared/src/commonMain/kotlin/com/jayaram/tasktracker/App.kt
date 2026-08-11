@@ -70,7 +70,6 @@ fun App(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(listState.isScrollInProgress) {
-
         if (listState.isScrollInProgress) {
             focusManager.clearFocus()
             keyboardController?.hide()
@@ -79,7 +78,6 @@ fun App(
     }
 
     LaunchedEffect(Unit) {
-
         folders.clear()
         folders.addAll(folderRepository.getFolders())
 
@@ -87,21 +85,27 @@ fun App(
     }
 
     MaterialTheme {
+        //if browser open, back button closes it
+        BackHandler(enabled = browserUrl != null) {
+            browserUrl = null
+        }
+
+        //if folder selected, back button redirects to all folders page
+        BackHandler(enabled = selectedFolder != null && browserUrl == null) {
+            selectedFolder = null
+        }
 
         if (browserUrl != null) {
-
             BrowserScreen(
                 initialUrl = browserUrl!!,
                 onBack = {
                     browserUrl = null
                 }
             )
-
             return@MaterialTheme
         }
 
         if (selectedFolder != null) {
-
             NotesScreen(
                 folder = selectedFolder!!,
                 noteRepository = noteRepository,
@@ -112,7 +116,6 @@ fun App(
                     browserUrl = url
                 }
             )
-
             return@MaterialTheme
         }
 
@@ -152,7 +155,6 @@ fun App(
                         style = MaterialTheme.typography.headlineLarge
                     )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
 
                 Card(
@@ -161,12 +163,10 @@ fun App(
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-
                         Text(
                             text = "📨 Contact Form",
                             style = MaterialTheme.typography.titleMedium
                         )
-
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
@@ -296,7 +296,6 @@ fun App(
                                             folders.addAll(folderRepository.getFolders())
 
                                             scope.launch {
-
                                                 val result = snackbarHostState.showSnackbar(
                                                     message = "Folder Deleted",
                                                     actionLabel = "UNDO",
@@ -304,7 +303,6 @@ fun App(
                                                 )
 
                                                 if (result == SnackbarResult.ActionPerformed) {
-
                                                     folderRepository.addFolder(
                                                         deletedFolder.name
                                                     )

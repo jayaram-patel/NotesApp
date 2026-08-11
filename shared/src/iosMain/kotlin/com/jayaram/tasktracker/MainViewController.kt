@@ -1,10 +1,9 @@
 package com.jayaram.tasktracker
 
 import androidx.compose.ui.window.ComposeUIViewController
-import com.jayaram.tasktracker.database.AppDatabase
-import com.jayaram.tasktracker.database.DatabaseDriverFactory
 import com.jayaram.tasktracker.repository.FolderRepository
 import com.jayaram.tasktracker.repository.NoteRepository
+import com.jayaram.tasktracker.repository.ContactRepository
 
 fun MainViewController() = ComposeUIViewController {
 
@@ -12,9 +11,11 @@ fun MainViewController() = ComposeUIViewController {
 
     val folderRepository = FolderRepository(database)
     val noteRepository = NoteRepository(database)
+    val contactRepository = ContactRepository(database)
 
     App(
         folderRepository = folderRepository,
-        noteRepository = noteRepository
+        noteRepository = noteRepository,
+        contactRepository = contactRepository // ADD THIS PARAMETER
     )
 }
