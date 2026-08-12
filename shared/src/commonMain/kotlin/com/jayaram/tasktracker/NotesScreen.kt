@@ -35,7 +35,7 @@ fun NotesScreen(
     folder: Folder,
     noteRepository: NoteRepository,
     onBack: () -> Unit,
-    openBrowser: (String) -> Unit
+    openBrowser: (String, String?) -> Unit
 ){
 
     var noteText by remember { mutableStateOf("") }
@@ -268,8 +268,8 @@ fun NotesScreen(
                                                     selectedNotes.add(note)
                                                 }
                                             } else {
-                                                // NEW: Open the contact form when a note is clicked
-                                                openBrowser("contact_us?note=${note.text}")
+                                                //Open the contact form when a note is clicked
+                                                openBrowser("contact_us", note.text)
                                             }
                                         },
 
@@ -310,7 +310,7 @@ fun NotesScreen(
                                     NoteContent(
                                         note = note.text,
                                         onLinkClick = { url ->
-                                            openBrowser(url)
+                                            openBrowser(url, null)
                                         }
                                     )
                                 }

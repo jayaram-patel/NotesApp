@@ -7,5 +7,6 @@ import androidx.compose.ui.Modifier
 expect fun WebView(
     url: String,
     modifier: Modifier = Modifier,
-    onTitleChanged: (String) -> Unit
+    onTitleChanged: (String) -> Unit,
+    noteData: String? = null
 )

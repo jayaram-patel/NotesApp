@@ -23,7 +23,8 @@ import androidx.compose.foundation.layout.padding
 @Composable
 fun BrowserScreen(
     initialUrl: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    noteData: String? = null
 ) {
 
     var pageTitle by remember {
@@ -59,7 +60,8 @@ fun BrowserScreen(
                 .padding(padding),
             onTitleChanged = {
                 pageTitle = it
-            }
+            },
+            noteData = noteData
         )
     }
 }

@@ -33,7 +33,8 @@ class LoggerScriptMessageHandler(
 actual fun WebView(
     url: String,
     modifier: Modifier,
-    onTitleChanged: (String) -> Unit
+    onTitleChanged: (String) -> Unit,
+    noteData: String?
 ) {
     val database = DatabaseModule.provideDatabase()
     val repository = ContactRepository(database)
@@ -66,17 +67,21 @@ actual fun WebView(
                 evaluateJavaScript(shim, null)
 
                 // Logic to load local HTML or remote URL
-                if (url.startsWith("contact_us")) {
-                    val noteText = url.substringAfter("note=", "")
+                if (url == "contact_us") {
                     val bundle = NSBundle.mainBundle
                     val path = bundle.pathForResource("contact", "html")
                     if (path != null) {
                         val fileUrl = NSURL.fileURLWithPath(path)
-                        val urlWithParams = NSURL(string = "?note=" + noteText, relativeToURL = fileUrl)
-                        loadFileURL(urlWithParams, allowingReadAccessToURL = fileUrl.URLByDeletingLastPathComponent()!!)
+                        loadFileURL(fileUrl, allowingReadAccessToURL = fileUrl.URLByDeletingLastPathComponent()!!)
                     }
                 } else if (url.startsWith("http")) {
                     loadRequest(NSURLRequest(NSURL(string = url)))
+                }
+
+                // Push note data if present
+                if (noteData != null) {
+                    val escaped = noteData.replace("'", "\\'")
+                    evaluateJavaScript("populateNoteData('$escaped')", null)
                 }
             }
         },

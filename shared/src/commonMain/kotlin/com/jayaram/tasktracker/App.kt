@@ -37,32 +37,21 @@ fun App(
     contactRepository: ContactRepository
 ){
     val haptic = LocalHapticFeedback.current
-    var submissionCount by remember {
-        mutableLongStateOf(0L)
-    }
+    var submissionCount by remember { mutableLongStateOf(0L) }
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-    var selectedFolder by remember {
-        mutableStateOf<Folder?>(null)
-    }
+    var selectedFolder by remember { mutableStateOf<Folder?>(null) }
 
-    var browserUrl by remember {
-        mutableStateOf<String?>(null)
-    }
+    var browserUrl by remember { mutableStateOf<String?>(null) }
+    var browserNoteData by remember { mutableStateOf<String?>(null) }
 
-    var folderName by remember {
-        mutableStateOf("")
-    }
+    var folderName by remember { mutableStateOf("") }
 
-    var editingFolder by remember {
-        mutableStateOf<Folder?>(null)
-    }
+    var editingFolder by remember { mutableStateOf<Folder?>(null) }
 
-    val folders = remember {
-        mutableStateListOf<Folder>()
-    }
+    val folders = remember { mutableStateListOf<Folder>() }
 
     val listState = rememberLazyListState()
 
@@ -74,7 +63,6 @@ fun App(
             focusManager.clearFocus()
             keyboardController?.hide()
         }
-
     }
 
     LaunchedEffect(Unit) {
@@ -98,8 +86,10 @@ fun App(
         if (browserUrl != null) {
             BrowserScreen(
                 initialUrl = browserUrl!!,
+                noteData = browserNoteData,
                 onBack = {
                     browserUrl = null
+                    browserNoteData = null
                 }
             )
             return@MaterialTheme
@@ -112,8 +102,9 @@ fun App(
                 onBack = {
                     selectedFolder = null
                 },
-                openBrowser = { url ->
+                openBrowser = { url, note ->
                     browserUrl = url
+                    browserNoteData = note
                 }
             )
             return@MaterialTheme

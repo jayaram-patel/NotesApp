@@ -31,3 +31,10 @@ function submitForm() {
     document.getElementById("email").value = "";
     document.getElementById("message").value = "";
 }
+
+function populateNoteData(text) {
+    if (text) {
+        document.getElementById("page-title").innerText = text;
+        document.getElementById("message").value = "Regarding my note: " + text;
+    }
+}

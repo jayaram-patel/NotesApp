@@ -72,7 +72,8 @@ class WebAppInterface(
 actual fun WebView(
     url: String,
     modifier: Modifier,
-    onTitleChanged: (String) -> Unit
+    onTitleChanged: (String) -> Unit,
+    noteData: String?
 ) {
 
     AndroidView(
@@ -101,19 +102,13 @@ actual fun WebView(
                         Log.e("WebViewError", "Error loading ${request?.url}: ${error?.description}")
                     }
 
-                    override fun onPageFinished(
-                        view: android.webkit.WebView?,
-                        url: String?
-                    ) {
-
+                    // Example for Android in WebView.android.kt
+                    override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
                         super.onPageFinished(view, url)
-
-                        view?.evaluateJavascript(
-                            """
-                            document.body.style.zoom = "110%";
-                            """.trimIndent(),
-                            null
-                        )
+                        if (noteData != null) {
+                            val escaped = noteData.replace("'", "\\'") // Prevent JS breaking
+                            view?.evaluateJavascript("populateNoteData('$escaped')", null)
+                        }
                     }
                 }
 
@@ -138,14 +133,11 @@ actual fun WebView(
         },
 
         update = { webView ->
-            val targetUrl = if (url.startsWith("contact_us")) {
-                val queryParams = url.substringAfter("?", "")
-                "file:///android_asset/contact.html?$queryParams"
+            val targetUrl = if (url=="contact_us") {
+                "file:///android_asset/contact.html"
             } else {
                 url
             }
-
-            Log.d("WebViewUpdate", "Current: ${webView.url}, Target: $targetUrl")
 
             if (webView.url != targetUrl) {
                 webView.loadUrl(targetUrl)
