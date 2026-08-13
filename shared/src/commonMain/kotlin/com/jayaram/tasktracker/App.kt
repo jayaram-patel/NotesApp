@@ -30,12 +30,18 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.runtime.mutableLongStateOf
 import com.jayaram.tasktracker.repository.ContactRepository
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
     folderRepository: FolderRepository,
     noteRepository: NoteRepository,
     contactRepository: ContactRepository
-){
+) {
     val haptic = LocalHapticFeedback.current
     var submissionCount by remember { mutableLongStateOf(0L) }
 
@@ -57,6 +63,17 @@ fun App(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    var isRefreshing by remember { mutableStateOf(false) }
+    val refreshData = {
+        scope.launch {
+            isRefreshing = true
+            folders.clear()
+            folders.addAll(folderRepository.getFolders())
+            submissionCount = contactRepository.getSubmissionCount()
+            isRefreshing = false
+        }
+    }
 
     LaunchedEffect(listState.isScrollInProgress) {
         if (listState.isScrollInProgress) {
@@ -125,119 +142,132 @@ fun App(
                 }
             }
         ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(16.dp)
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { refreshData() },
+                modifier = Modifier.padding(innerPadding)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        modifier = Modifier.size(42.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    item {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(42.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
 
-                    Text(
-                        text = "My Notes",
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = "📨 Contact Form",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Text(
-                            text = "Total Submissions: $submissionCount",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    TextField(
-                        value = folderName,
-                        onValueChange = {
-                            folderName = it
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = {
-                            Text("Folder name")
+                                Text(
+                                    text = "My Notes",
+                                    style = MaterialTheme.typography.headlineLarge
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
-                    )
+                    }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    item {
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "📨 Contact Form",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
 
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            haptic.performHapticFeedback(
-                                HapticFeedbackType.LongPress
-                            )
-
-                            if (folderName.isBlank()) {
-                                scope.launch {
-                                    snackbarHostState.currentSnackbarData?.dismiss()
-
-                                    snackbarHostState.showSnackbar(
-                                        message = "Enter folder name first",
-                                        duration = SnackbarDuration.Short
+                                    Text(
+                                        text = "Total Submissions: $submissionCount",
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
-                                return@Button
                             }
-
-                            if (editingFolder == null) {
-                                folderRepository.addFolder(folderName)
-                            } else {
-                                folderRepository.updateFolder(
-                                    editingFolder!!.copy(
-                                        name = folderName
-                                    )
-                                )
-                                editingFolder = null
-                            }
-
-                            folders.clear()
-                            folders.addAll(folderRepository.getFolders())
-                            folderName = ""
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
                         }
-                    ) {
-                        Text(
-                            if (editingFolder == null)
-                                "Create Folder"
-                            else
-                                "Save Changes"
-                        )
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(30.dp))
-                    Text(
-                        text = "All Folders",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    item {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            TextField(
+                                value = folderName,
+                                onValueChange = {
+                                    folderName = it
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = {
+                                    Text("Folder name")
+                                }
+                            )
 
-                    LazyColumn(
-                        state = listState
-                    ) {
-                        items(folders) { folder ->
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Button(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    haptic.performHapticFeedback(
+                                        HapticFeedbackType.LongPress
+                                    )
+
+                                    if (folderName.isBlank()) {
+                                        scope.launch {
+                                            snackbarHostState.currentSnackbarData?.dismiss()
+
+                                            snackbarHostState.showSnackbar(
+                                                message = "Enter folder name first",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                        return@Button
+                                    }
+
+                                    if (editingFolder == null) {
+                                        folderRepository.addFolder(folderName)
+                                    } else {
+                                        folderRepository.updateFolder(
+                                            editingFolder!!.copy(
+                                                name = folderName
+                                            )
+                                        )
+                                        editingFolder = null
+                                    }
+
+                                    folders.clear()
+                                    folders.addAll(folderRepository.getFolders())
+                                    folderName = ""
+                                    focusManager.clearFocus()
+                                    keyboardController?.hide()
+                                }
+                            ) {
+                                Text(
+                                    if (editingFolder == null)
+                                        "Create Folder"
+                                    else
+                                        "Save Changes"
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(30.dp))
+                            Text(
+                                text = "All Folders",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                    }
+
+                    items(folders) { folder ->
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -314,7 +344,12 @@ fun App(
                             }
                         }
                     }
+                    
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
     }
+}
