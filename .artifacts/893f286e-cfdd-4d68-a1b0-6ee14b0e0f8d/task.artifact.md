@@ -1,0 +1,3 @@
+- [x] Implement `WKNavigationDelegate` and URL updates in `WebView.ios.kt`
+- [x] Add `populateNoteData` to `iosApp/iosApp/script.js`
+- [x] Verify changes

@@ -1,6 +1,8 @@
 package com.jayaram.tasktracker
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import com.jayaram.tasktracker.repository.ContactRepository
@@ -29,6 +31,24 @@ class LoggerScriptMessageHandler(
     }
 }
 
+class WebViewDelegate(
+    private val onTitleChanged: (String) -> Unit,
+    private var noteData: String?
+) : NSObject(), WKNavigationDelegateProtocol {
+
+    fun updateNoteData(newNoteData: String?) {
+        noteData = newNoteData
+    }
+
+    override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+        onTitleChanged(webView.title ?: "Web Page")
+        noteData?.let {
+            val escaped = it.replace("'", "\\'")
+            webView.evaluateJavaScript("populateNoteData('$escaped')", null)
+        }
+    }
+}
+
 @Composable
 actual fun WebView(
     url: String,
@@ -39,16 +59,21 @@ actual fun WebView(
     val database = DatabaseModule.provideDatabase()
     val repository = ContactRepository(database)
 
+    val delegate = remember {
+        WebViewDelegate(onTitleChanged, noteData)
+    }
+
+    SideEffect {
+        delegate.updateNoteData(noteData)
+    }
+
     UIKitView(
         factory = {
             val config = WKWebViewConfiguration().apply {
                 val controller = WKUserContentController()
                 // Register the bridge
                 controller.addScriptMessageHandler(LoggerScriptMessageHandler(repository), "iosBridge")
-                userContentController = controller
-            }
 
-            WKWebView(frame = platform.CoreGraphics.CGRectZero.readValue(), configuration = config).apply {
                 // Inject a "shim" so your existing JS 'Android.submitForm' calls work on iOS
                 val shim = """
                     window.Android = {
@@ -64,27 +89,36 @@ actual fun WebView(
                     };
                 """.trimIndent()
 
-                evaluateJavaScript(shim, null)
+                val script = WKUserScript(
+                    source = shim,
+                    injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+                    forMainFrameOnly = true
+                )
+                controller.addUserScript(script)
+                userContentController = controller
+            }
 
-                // Logic to load local HTML or remote URL
-                if (url == "contact_us") {
-                    val bundle = NSBundle.mainBundle
-                    val path = bundle.pathForResource("contact", "html")
-                    if (path != null) {
-                        val fileUrl = NSURL.fileURLWithPath(path)
-                        loadFileURL(fileUrl, allowingReadAccessToURL = fileUrl.URLByDeletingLastPathComponent()!!)
-                    }
-                } else if (url.startsWith("http")) {
-                    loadRequest(NSURLRequest(NSURL(string = url)))
-                }
-
-                // Push note data if present
-                if (noteData != null) {
-                    val escaped = noteData.replace("'", "\\'")
-                    evaluateJavaScript("populateNoteData('$escaped')", null)
-                }
+            WKWebView(frame = platform.CoreGraphics.CGRectZero.readValue(), configuration = config).apply {
+                navigationDelegate = delegate
             }
         },
-        modifier = modifier
+        modifier = modifier,
+        update = { webView ->
+            val targetUrl = if (url == "contact_us") {
+                val bundle = NSBundle.mainBundle
+                bundle.pathForResource("contact", "html")?.let { "file://$it" }
+            } else {
+                url
+            }
+
+            if (targetUrl != null && webView.URL?.absoluteString != targetUrl) {
+                if (targetUrl.startsWith("file://")) {
+                    val fileUrl = NSURL.fileURLWithPath(targetUrl.removePrefix("file://"))
+                    webView.loadFileURL(fileUrl, allowingReadAccessToURL = fileUrl.URLByDeletingLastPathComponent()!!)
+                } else {
+                    webView.loadRequest(NSURLRequest(NSURL(string = targetUrl)))
+                }
+            }
+        }
     )
 }
