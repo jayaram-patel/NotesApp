@@ -16,6 +16,6 @@ fun MainViewController() = ComposeUIViewController {
     App(
         folderRepository = folderRepository,
         noteRepository = noteRepository,
-        contactRepository = contactRepository // ADD THIS PARAMETER
+        contactRepository = contactRepository
     )
 }

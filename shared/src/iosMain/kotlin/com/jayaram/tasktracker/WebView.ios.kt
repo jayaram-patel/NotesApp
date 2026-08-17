@@ -31,6 +31,7 @@ class LoggerScriptMessageHandler(
     }
 }
 
+//(Kotlin->js) implement WKNavigationDelegateProtocol to handle lifecycle
 class WebViewDelegate(
     private val onTitleChanged: (String) -> Unit,
     private var noteData: String?
@@ -68,10 +69,10 @@ actual fun WebView(
     }
 
     UIKitView(
-        factory = {
+        factory = { //runs once
             val config = WKWebViewConfiguration().apply {
                 val controller = WKUserContentController()
-                // Register the bridge
+                // Register the bridge (js->kotlin)_
                 controller.addScriptMessageHandler(LoggerScriptMessageHandler(repository), "iosBridge")
 
                 // Inject a "shim" so your existing JS 'Android.submitForm' calls work on iOS

@@ -153,6 +153,7 @@ fun App(
                 ) {
                     item {
                         Column(modifier = Modifier.padding(16.dp)) {
+                            Spacer(modifier = Modifier.height(12.dp))
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -161,7 +162,6 @@ fun App(
                                     contentDescription = null,
                                     modifier = Modifier.size(42.dp)
                                 )
-                                Spacer(modifier = Modifier.width(12.dp))
 
                                 Text(
                                     text = "My Notes",
@@ -194,6 +194,15 @@ fun App(
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
+                    }
+
+                    item {
+                        Text(
+                            text = "Folder Creation",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
                     }
 
                     item {
