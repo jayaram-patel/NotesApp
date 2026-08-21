@@ -6,6 +6,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import com.jayaram.tasktracker.repository.ContactRepository
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.readValue
 import platform.WebKit.*
 import platform.Foundation.*
 import platform.darwin.NSObject
@@ -50,6 +52,7 @@ class WebViewDelegate(
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun WebView(
     url: String,
@@ -60,6 +63,12 @@ actual fun WebView(
     val database = DatabaseModule.provideDatabase()
     val repository = ContactRepository(database)
 
+    // IMPORTANT: WKUserContentController holds a weak reference to its script message handlers.
+    // We must remember it so it doesn't get garbage collected.
+    val scriptMessageHandler = remember {
+        LoggerScriptMessageHandler(repository)
+    }
+            
     val delegate = remember {
         WebViewDelegate(onTitleChanged, noteData)
     }
@@ -73,7 +82,7 @@ actual fun WebView(
             val config = WKWebViewConfiguration().apply {
                 val controller = WKUserContentController()
                 // Register the bridge (js->kotlin)_
-                controller.addScriptMessageHandler(LoggerScriptMessageHandler(repository), "iosBridge")
+                controller.addScriptMessageHandler(scriptMessageHandler, "iosBridge")
 
                 // Inject a "shim" so your existing JS 'Android.submitForm' calls work on iOS
                 val shim = """
