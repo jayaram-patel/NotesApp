@@ -1,7 +1,0 @@
-- [x] Fix `WebView.ios.kt`
-    - [x] Add `kotlinx.cinterop` imports
-    - [x] Add `@OptIn(ExperimentalForeignApi::class)`
-    - [x] Use `remember` to persist `LoggerScriptMessageHandler`
-    - [x] Fix `CGRectZero.readValue()`
-- [x] Verify changes with `analyze_file`
-- [x] Finalize walkthrough

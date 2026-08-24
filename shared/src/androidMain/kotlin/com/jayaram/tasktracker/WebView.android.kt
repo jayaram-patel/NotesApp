@@ -102,7 +102,6 @@ actual fun WebView(
                         Log.e("WebViewError", "Error loading ${request?.url}: ${error?.description}")
                     }
 
-                    // Example for Android in WebView.android.kt
                     override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         if (noteData != null) {

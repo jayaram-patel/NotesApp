@@ -10,9 +10,13 @@ class NoteRepository(
     private val queries = database.appDatabaseQueries
 
     fun addNote(folderId: Long, text: String) {
+        val maxPos = queries
+            .getMaxPosition(folderId)
+            .executeAsOneOrNull()?.maxPos ?: -1L
         queries.insertNote(
             folderId = folderId,
-            text = text
+            text = text,
+            position = maxPos + 1
         )
     }
 
@@ -24,7 +28,8 @@ class NoteRepository(
                 Note(
                     id = it.id,
                     text = it.text,
-                    folderId = it.folderId
+                    folderId = it.folderId,
+                    position = it.position.toInt()
                 )
             }
     }
@@ -48,8 +53,13 @@ class NoteRepository(
                 Note(
                     id = it.id,
                     text = it.text,
-                    folderId = it.folderId
+                    folderId = it.folderId,
+                    position = it.position.toInt()
                 )
             }
+    }
+
+    fun updateNotePosition(id: Long, position: Int){
+        queries.updateNotePosition(position.toLong(), id)
     }
 }
