@@ -1,0 +1,3 @@
+- [ ] Create migration file `1.sqm`
+- [ ] Verify Gradle build and code generation
+- [ ] Manual verification (user check)

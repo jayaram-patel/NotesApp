@@ -1,0 +1,5 @@
+- [ ] Downgrade versions in `libs.versions.toml`
+- [ ] Add `androidLibrary` plugin to `libs.versions.toml`
+- [ ] Register `androidLibrary` in root `build.gradle.kts`
+- [ ] Refactor `shared/build.gradle.kts` to use standard Android Library plugin
+- [ ] Verify build by running `./gradlew :shared:assembleDebug`
