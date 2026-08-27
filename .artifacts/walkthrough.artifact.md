@@ -14,8 +14,9 @@ I have updated the project configuration to resolve the AGP 9.0 compatibility er
 - **`shared` module**: Switched from the experimental `com.android.kotlin.multiplatform.library` to the stable `com.android.library`. This resolves the conflict with `org.jetbrains.kotlin.multiplatform`.
 - **`androidApp` module**: Updated to use `kotlin-android` plugin correctly and fixed `jvmTarget` syntax for Kotlin 2.1.0.
 
-### Dependency Management
-- Updated `libs.versions.toml` to include all necessary plugin aliases and stable versions for AndroidX and Compose components.
+### Source Code Compatibility
+- **Material3 PullToRefresh**: Fixed an unresolved reference to `PullToRefreshBox` by aligning the JetBrains Compose Material3 version in `libs.versions.toml` with the Compose Multiplatform version (`1.7.3`).
+- **Experimental APIs**: Added `@OptIn` annotations for `ExperimentalMaterial3Api` and `ExperimentalFoundationApi` in `NotesScreen.kt` to allow usage of components like `combinedClickable` and specific `TextField` overloads that were previously causing build failures.
 
 ## Verification Results
 

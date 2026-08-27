@@ -1,3 +1,5 @@
-- [ ] Create migration file `1.sqm`
-- [ ] Verify Gradle build and code generation
-- [ ] Manual verification (user check)
+- [x] Fix gesture conflict in `combinedClickable`
+- [x] Add item keys to `LazyColumn` for smoother animations
+- [x] Implement `zIndex` and visual feedback for dragged items
+- [x] Refine `swapNotes` logic and add haptic feedback
+- [x] Verify fix and update walkthrough

@@ -1,20 +1,28 @@
-# Walkthrough - Fix Notes Screen Crash
+# Walkthrough - Drag and Drop Reordering Fixed
 
-I have fixed the crash that occurred when opening folders.
+I have fixed the drag-and-drop reordering logic in the `NotesScreen`.
 
 ## Changes Made
 
-### Database Migration
-I added a SQLDelight migration file [1.sqm](file:///C:/Users/jayarampatel/AndroidStudioProjects/NotesApp/shared/src/commonMain/sqldelight/com/jayaram/tasktracker/database/1.sqm).
+### UI Layer
 
-> [!NOTE]
-> This migration adds the missing `position` column to the `Note` table for existing installations.
-> For fresh installs, the schema is created correctly from the latest `.sq` file.
+#### [NotesScreen.kt](file:///C:/Users/jayarampatel/AndroidStudioProjects/NotesApp/shared/src/commonMain/kotlin/com/jayaram/tasktracker/NotesScreen.kt)
+
+- **Gesture Conflict Resolved**: I disabled the initial `onLongClick` listener once `selectionMode` is active. This allows the `Card`'s drag gesture detector to take over correctly.
+- **Smooth Animations**: Added `key = { it.id }` to the `itemsIndexed` call. This ensures that Compose can track items during reordering and animate their movement smoothly.
+- **Visual Enhancements**:
+    - Added `.zIndex(1f)` to the dragged item so it stays on top of other notes.
+    - Added a scale and shadow effect when a note is "picked up".
+- **Haptic Feedback**:
+    - Triggered a haptic pulse when dragging starts.
+    - Added a subtle haptic feedback whenever two items swap positions.
 
 ## Verification Results
 
-- **Gradle Build**: The build and code generation succeeded, confirming that the migration file is correctly formatted and recognized by SQLDelight.
-- **Code Stability**: The `NoteRepository` is already configured to handle the new `position` column and gracefully handle empty folders.
+- **Build Status**: The project builds successfully with no errors.
+- **UI Logic**: The gesture conflict is resolved. You can now:
+    1. Long-press once to select.
+    2. Long-press again and drag to reorder.
 
 ## Next Steps
-Please run the app. The crash should now be resolved without needing to uninstall/reinstall.
+Run the app on your device and try reordering the notes in selection mode. The experience should now be smooth and responsive.

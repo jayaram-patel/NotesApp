@@ -6,7 +6,6 @@ import com.jayaram.tasktracker.model.Folder
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -30,6 +29,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 
 import com.jayaram.tasktracker.components.NoteContent
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.ExperimentalFoundationApi
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NotesScreen(
     folder: Folder,
@@ -58,6 +66,24 @@ fun NotesScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    var draggedItemIndex by remember { mutableStateOf<Int?>(null) }
+    var dragOffset by remember { mutableStateOf(0f) }
+
+    fun swapNotes(fromIndex: Int, toIndex: Int) {
+        if (toIndex !in notes.indices) return
+
+        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+
+        val fromNote = notes[fromIndex]
+        val toNote = notes[toIndex]
+
+        notes[fromIndex] = toNote.copy(position = fromNote.position)
+        notes[toIndex] = fromNote.copy(position = toNote.position)
+
+        noteRepository.updateNotePosition(fromNote.id, toNote.position)
+        noteRepository.updateNotePosition(toNote.id, fromNote.position)
+    }
 
     LaunchedEffect(listState.isScrollInProgress) {
 
@@ -89,26 +115,7 @@ fun NotesScreen(
                     )
                 }
             },
-
-//            floatingActionButton = {
-//
-//                FloatingActionButton(
-//
-//                    onClick = {
-//
-//                        openBrowser("https://www.google.com")
-//
-//                    }
-//
-//                ) {
-//
-//                    Text("\uD83D\uDCDE")
-//
-//                }
-//
-//            }
-
-
+            
         ) { innerPadding ->
 
             Column(
@@ -244,12 +251,58 @@ fun NotesScreen(
                     state = listState
                 ) {
 
-                    items(notes) { note ->
+                    itemsIndexed(
+                        items = notes,
+                        key = { _, note -> note.id }
+                    ) { index, note ->
+
+                        val isDragged = draggedItemIndex == index
+                        val animatedOffset by animateFloatAsState(if (isDragged) dragOffset else 0f)
 
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 6.dp)
+                                .zIndex(if (isDragged) 1f else 0f)
+                                .graphicsLayer {
+                                    translationY = animatedOffset
+                                    scaleX = if (isDragged) 1.05f else 1f
+                                    scaleY = if (isDragged) 1.05f else 1f
+                                    shadowElevation = if (isDragged) 8f else 0f
+                                }
+                                .pointerInput(selectionMode) {
+                                    if (selectionMode) {
+                                        detectDragGesturesAfterLongPress(
+                                            onDragStart = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                draggedItemIndex = index
+                                            },
+                                            onDrag = { change, dragAmount ->
+                                                change.consume()
+                                                dragOffset += dragAmount.y
+
+                                                val threshold = 50f
+                                                if (dragOffset > threshold && index < notes.size - 1) {
+                                                    swapNotes(index, index + 1)
+                                                    draggedItemIndex = index + 1
+                                                    dragOffset = 0f
+                                                } else if (dragOffset < -threshold && index > 0) {
+                                                    swapNotes(index, index - 1)
+                                                    draggedItemIndex = index - 1
+                                                    dragOffset = 0f
+                                                }
+                                            },
+                                            onDragEnd = {
+                                                draggedItemIndex = null
+                                                dragOffset = 0f
+                                            },
+                                            onDragCancel = {
+                                                draggedItemIndex = null
+                                                dragOffset = 0f
+                                            }
+                                        )
+                                    }
+                                }
                         ) {
 
                             Row(
@@ -273,19 +326,19 @@ fun NotesScreen(
                                             }
                                         },
 
-                                        onLongClick = {
+                                        onLongClick = if (!selectionMode) {
+                                            {
+                                                haptic.performHapticFeedback(
+                                                    HapticFeedbackType.LongPress
+                                                )
 
-                                            haptic.performHapticFeedback(
-                                                HapticFeedbackType.LongPress
-                                            )
+                                                selectionMode = true
 
-                                            selectionMode = true
-
-                                            if (!selectedNotes.contains(note)) {
-                                                selectedNotes.add(note)
+                                                if (!selectedNotes.contains(note)) {
+                                                    selectedNotes.add(note)
+                                                }
                                             }
-
-                                        }
+                                        } else null
 
                                     )
                                     .padding(16.dp),
