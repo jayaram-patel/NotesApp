@@ -6,6 +6,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import com.jayaram.tasktracker.repository.ContactRepository
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.readValue
 import platform.WebKit.*
 import platform.Foundation.*
 import platform.darwin.NSObject
@@ -50,6 +52,7 @@ class WebViewDelegate(
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun WebView(
     url: String,

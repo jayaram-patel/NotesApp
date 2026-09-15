@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.jayaram.tasktracker.model.Note
 import com.jayaram.tasktracker.repository.NoteRepository
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.filled.ArrowBack
 
@@ -30,6 +31,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 
 import com.jayaram.tasktracker.components.NoteContent
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NotesScreen(
     folder: Folder,

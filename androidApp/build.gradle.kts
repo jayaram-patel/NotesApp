@@ -1,19 +1,14 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.androidApplication)
+    alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
-    }
-}
 dependencies {
     implementation(projects.shared)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
 }
@@ -24,8 +19,8 @@ android {
 
     defaultConfig {
         applicationId = "com.jayaram.tasktracker"
-        minSdk = 26
-        targetSdk = 36
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
     }
@@ -47,12 +42,8 @@ android {
 
     buildTypes {
         getByName("release") {
-
-            // Disable these for now
             isMinifyEnabled = false
             isShrinkResources = false
-
-            // Use the release keystore
             signingConfig = signingConfigs.getByName("release")
 
             proguardFiles(
@@ -65,5 +56,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
